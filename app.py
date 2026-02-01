@@ -65,13 +65,14 @@ col_comp, col_mine = st.columns(2)
 with col_comp:
     st.subheader("🔴 The Competitor")
     comp_url = st.text_input("Competitor URL", placeholder="https://them.com/blog")
-    if st.button("Fetch Competitor", type="secondary"):
+    if st.button("Fetch Competitor", type="secondary", key="fetch_competitor"):
         if comp_url:
             with st.spinner("Fetching competitor..."):
                 text = fetch_url_content(comp_url)
                 if text:
                     st.session_state['competitor_text'] = text
                     st.success(f"Fetched {len(text)} characters.")
+                    st.rerun()
     
     # Show preview if fetched
     if st.session_state['competitor_text']:
@@ -82,13 +83,14 @@ with col_comp:
 with col_mine:
     st.subheader("🟢 My Page")
     my_url = st.text_input("My URL", placeholder="https://me.com/blog")
-    if st.button("Fetch My Page", type="secondary"):
+    if st.button("Fetch My Page", type="secondary", key="fetch_my_page"):
         if my_url:
             with st.spinner("Fetching my page..."):
                 text = fetch_url_content(my_url)
                 if text:
                     st.session_state['my_text'] = text
                     st.success(f"Fetched {len(text)} characters.")
+                    st.rerun()
 
     # Editable Text Area (User can tweak fetched text)
     if st.session_state['my_text']:
@@ -99,7 +101,7 @@ with col_mine:
         "Content for Analysis (Editable)", 
         value=st.session_state['my_text'],
         height=200,
-        key="my_text_area"
+        placeholder="Paste your content here or fetch from URL above..."
     )
 
 # --- BOTTOM: ACTION & RESULTS ---
