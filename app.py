@@ -91,10 +91,15 @@ with col_mine:
                     st.success(f"Fetched {len(text)} characters.")
 
     # Editable Text Area (User can tweak fetched text)
+    if st.session_state['my_text']:
+        with st.expander("View My Page Text"):
+            st.write(st.session_state['my_text'][:1000] + "...")
+    
     my_content_final = st.text_area(
         "Content for Analysis (Editable)", 
         value=st.session_state['my_text'],
-        height=200
+        height=200,
+        key="my_text_area"
     )
 
 # --- BOTTOM: ACTION & RESULTS ---
@@ -102,13 +107,16 @@ st.divider()
 analyze_btn = st.button("🚀 Analyze Semantic Gap", type="primary", use_container_width=True)
 
 if analyze_btn:
-    if not target_keyword or not my_content_final:
-        st.warning("⚠️ Please provide a Target Keyword and fetch/paste 'My Page' content.")
+    if not target_keyword:
+        st.warning("⚠️ Please provide a Target Keyword.")
+    elif not my_content_final or len(my_content_final.strip()) < 50:
+        st.warning("⚠️ Please fetch or paste 'My Page' content (at least 50 characters).")
     else:
         # 1. SCORING
-        emb_kw = model.encode(target_keyword)
-        emb_my = model.encode(my_content_final)
-        score = model.similarity(emb_kw, emb_my).item()
+        with st.spinner("🔍 Analyzing semantic similarity..."):
+            emb_kw = model.encode(target_keyword)
+            emb_my = model.encode(my_content_final)
+            score = float(model.similarity(emb_kw, emb_my)[0][0])
         
         # 2. DISPLAY SCORE
         st.markdown("### 📊 Semantic Proximity Score")
