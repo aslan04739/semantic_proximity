@@ -46,8 +46,21 @@ def fetch_url_content(url):
         return None
 
 def extract_keywords(text, top_n=20):
-    if not text: return []
-    return kw_model.extract_keywords(text, keyphrase_ngram_range=(1, 2), stop_words='english', top_n=top_n)
+    if not text: 
+        return []
+    try:
+        keywords = kw_model.extract_keywords(
+            text, 
+            keyphrase_ngram_range=(1, 2), 
+            stop_words='english', 
+            top_n=top_n,
+            use_mmr=True,
+            diversity=0.3
+        )
+        return keywords
+    except Exception as e:
+        st.error(f"KeyBERT extraction error: {str(e)}")
+        return []
 
 # --- 4. THE INTERFACE ---
 st.title("⚔️ " + PAGE_TITLE)
@@ -141,9 +154,12 @@ if analyze_btn:
             st.divider()
             st.markdown("### 🕵️‍♀️ Keyword Gap Analysis")
             
-            with st.spinner("Extracting entities from both pages..."):
+            try:
                 # Extract Top Keywords
+                st.write("Extracting keywords from competitor page...")
                 comp_kws = [kw[0] for kw in extract_keywords(st.session_state['competitor_text'], top_n=25)]
+                
+                st.write("Extracting keywords from your page...")
                 my_kws = [kw[0] for kw in extract_keywords(my_content_final, top_n=25)]
                 
                 # Find Missing
@@ -167,7 +183,14 @@ if analyze_btn:
                     st.caption("You both cover these concepts:")
                     # Intersection
                     shared = [kw for kw in comp_kws if kw.lower() in my_content_final.lower()]
-                    st.write(", ".join(shared))
+                    if shared:
+                        st.write(", ".join(shared))
+                    else:
+                        st.write("No shared topics found.")
+                        
+            except Exception as e:
+                st.error(f"Error during keyword extraction: {str(e)}")
+                st.write("Debug info: Check terminal for details")
         
         else:
             st.info("💡 Tip: Fetch a Competitor URL to see Gap Analysis.")
