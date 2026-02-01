@@ -1,5 +1,5 @@
 import streamlit as st
-from sentence_transformers import SentenceTransformer
+from sentence_transformers import SentenceTransformer, util
 from keybert import KeyBERT
 import requests
 from bs4 import BeautifulSoup
@@ -116,9 +116,9 @@ if analyze_btn:
     else:
         # 1. SCORING
         with st.spinner("🔍 Analyzing semantic similarity..."):
-            emb_kw = model.encode(target_keyword)
-            emb_my = model.encode(my_content_final)
-            score = float(model.similarity(emb_kw, emb_my)[0][0])
+            emb_kw = model.encode(target_keyword, convert_to_tensor=True)
+            emb_my = model.encode(my_content_final, convert_to_tensor=True)
+            score = float(util.cos_sim(emb_kw, emb_my)[0][0])
         
         # 2. DISPLAY SCORE
         st.markdown("### 📊 Semantic Proximity Score")
